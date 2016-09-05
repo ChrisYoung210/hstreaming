@@ -1,32 +1,42 @@
 package cn.ac.nci.ztb.hs.rpc
 package kryo
 
-import java.lang.reflect.{InvocationTargetException, Method}
+import java.lang.reflect.{InvocationTargetException, Method, Proxy}
 import java.net.InetSocketAddress
 
 import cn.ac.nci.ztb.hs.common.Configuration
 import cn.ac.nci.ztb.hs.io.Writable
+import cn.ac.nci.ztb.hs.utils.BlockingHashMap
 import com.esotericsoftware.kryo.Kryo
 import io.netty.channel.{ChannelHandlerContext, ChannelInitializer, SimpleChannelInboundHandler}
 import io.netty.channel.socket.SocketChannel
-import io.netty.channel.socket.nio.NioSocketChannel
 import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool, GenericObjectPoolConfig}
 import org.apache.commons.pool2.{BasePooledObjectFactory, PooledObject}
 import org.objenesis.strategy.SerializingInstantiatorStrategy
 import org.slf4j.LoggerFactory
 
-import scala.collection.mutable.HashMap
+import scala.collection.mutable.{HashMap, WeakHashMap}
 import scala.language.postfixOps
-import scala.reflect.ClassTag
+import scala.reflect._
 
 /**
   * Created by Young on 16-9-1.
   */
 class KryoRpcEngine extends RpcEngine {
 
-  override def getProxy[T: ClassTag](address: InetSocketAddress): T = ???
+  private lazy val PROXY_CACHE = new WeakHashMap[InetSocketAddress, WeakHashMap[Class[_], AnyRef]]
 
-  override def getServer(address: InetSocketAddress): Server = ???
+  override def getProxy[T: ClassTag](address: InetSocketAddress) = {
+    PROXY_CACHE synchronized {
+      val tempMap = PROXY_CACHE getOrElseUpdate(address,
+        new WeakHashMap[Class[_], AnyRef] asInstanceOf)
+      val clazz = classTag[T] runtimeClass;
+      tempMap getOrElseUpdate(clazz, Proxy newProxyInstance(clazz getClassLoader,
+        Array[java.lang.Class[_]](clazz), new Invoker(address, clazz))) asInstanceOf
+    }
+  }
+
+  override def getServer(address: InetSocketAddress): Server = new KryoRpcServer(address)
 
   private class KryoRpcServer(address: InetSocketAddress) extends Server(address) {
 
@@ -56,10 +66,8 @@ class KryoRpcEngine extends RpcEngine {
                       null, msg getRequestId, e getCause)
                   }
                 }
-
               }
             }
-
         }
       }
     }
@@ -90,9 +98,15 @@ class KryoRpcEngine extends RpcEngine {
 
     private val client = new KryoRpcClient(address, this)
 
-    def getResponse(requestId : Long) : KryoResponseWrapper = null
+    private lazy val responses =
+      new BlockingHashMap[Long, KryoResponseWrapper](Configuration
+        getIntOrDefault("rpc.timeout", 500))
 
-    override def putResponse(response: KryoResponseWrapper): Unit = ???
+    def getResponse(requestId : Long) = responses get requestId
+
+    override def putResponse(response: KryoResponseWrapper): Unit = {
+      responses put(response getRequestId, response)
+    }
 
     override def invoke(proxy: scala.Any,
                         method: Method,
