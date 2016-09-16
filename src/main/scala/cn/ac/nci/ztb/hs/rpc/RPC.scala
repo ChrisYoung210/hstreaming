@@ -32,6 +32,6 @@ object RPC {
     maps getOrElseUpdate(address, getProtocolEngine[KryoRpcEngine] getServer address)
   }
 
-  def getProxy[T : ClassTag](address : InetSocketAddress) =
-    getProtocolEngine[KryoRpcEngine] getProxy[T] address
+  def getProxy[T](clazz : Class[T], address : InetSocketAddress) : T =
+    getProtocolEngine[KryoRpcEngine] getProxy(clazz, address)
 }

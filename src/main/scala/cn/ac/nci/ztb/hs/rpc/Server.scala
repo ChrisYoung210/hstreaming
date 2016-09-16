@@ -45,6 +45,7 @@ abstract class Server(address : InetSocketAddress) extends Service {
       if (state equals State.INITED) {
         channelFuture = server bind address sync()
         state = State.STARTED
+        RPC.logger info getClass + "已完成启动。"
       } else false
     }
     true

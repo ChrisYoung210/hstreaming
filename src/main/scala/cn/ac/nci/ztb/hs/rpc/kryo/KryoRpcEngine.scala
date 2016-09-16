@@ -8,8 +8,8 @@ import cn.ac.nci.ztb.hs.common.Configuration
 import cn.ac.nci.ztb.hs.io.Writable
 import cn.ac.nci.ztb.hs.utils.BlockingHashMap
 import com.esotericsoftware.kryo.Kryo
-import io.netty.channel.{ChannelHandlerContext, ChannelInitializer, SimpleChannelInboundHandler}
 import io.netty.channel.socket.SocketChannel
+import io.netty.channel.{ChannelHandlerContext, ChannelInitializer, SimpleChannelInboundHandler}
 import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool, GenericObjectPoolConfig}
 import org.apache.commons.pool2.{BasePooledObjectFactory, PooledObject}
 import org.objenesis.strategy.SerializingInstantiatorStrategy
@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.mutable.{HashMap, WeakHashMap}
 import scala.language.postfixOps
-import scala.reflect._
 
 /**
   * Created by Young on 16-9-1.
@@ -26,13 +25,13 @@ class KryoRpcEngine extends RpcEngine {
 
   private lazy val PROXY_CACHE = new WeakHashMap[InetSocketAddress, WeakHashMap[Class[_], AnyRef]]
 
-  override def getProxy[T: ClassTag](address: InetSocketAddress) = {
+  override def getProxy[T](clazz : Class[T],
+                           address: InetSocketAddress) : T = {
     PROXY_CACHE synchronized {
       val tempMap = PROXY_CACHE getOrElseUpdate(address,
-        new WeakHashMap[Class[_], AnyRef] asInstanceOf)
-      val clazz = classTag[T] runtimeClass;
-      tempMap getOrElseUpdate(clazz, Proxy newProxyInstance(clazz getClassLoader,
-        Array[java.lang.Class[_]](clazz), new Invoker(address, clazz))) asInstanceOf
+        new WeakHashMap[Class[_], AnyRef])
+      tempMap.getOrElseUpdate(clazz, Proxy newProxyInstance(clazz getClassLoader,
+        Array[java.lang.Class[_]](clazz), new Invoker(address, clazz))).asInstanceOf[T]
     }
   }
 
@@ -86,7 +85,8 @@ class KryoRpcEngine extends RpcEngine {
           ch pipeline() addLast
             new KryoRequestEncoder(KryoRpcPool.getClientKryoPool) addLast
             new KryoResponseDecoder(KryoRpcPool.getClientKryoPool) addLast
-            new KryoRpcClientHandler(getInvoker asInstanceOf)
+            new KryoRpcClientHandler(getInvoker
+              .asInstanceOf[RpcInvocationHandler[KryoResponseWrapper]])
         }
       }
     }
@@ -97,6 +97,8 @@ class KryoRpcEngine extends RpcEngine {
     RpcInvocationHandler[KryoResponseWrapper] {
 
     private val client = new KryoRpcClient(address, this)
+    client.init
+    client.start
 
     private lazy val responses =
       new BlockingHashMap[Long, KryoResponseWrapper](Configuration
@@ -112,8 +114,7 @@ class KryoRpcEngine extends RpcEngine {
                         method: Method,
                         args: Array[AnyRef]) = {
       val params = new Array[Writable](args.length)
-      for (i <- args.indices) params(i) = args(i) asInstanceOf
-
+      for (i <- args.indices) params(i) = args(i).asInstanceOf[Writable]
       val requestId = client getNextRequestId
       val requestWrapper = new KryoRequestWrapper(protocol,
         method getName, params, requestId)
