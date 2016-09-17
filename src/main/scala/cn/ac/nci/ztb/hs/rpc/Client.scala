@@ -11,6 +11,8 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 
+import scala.language.postfixOps
+
 /**
   * Created by Young on 16-9-1.
   */
@@ -26,9 +28,9 @@ abstract class Client(address : InetSocketAddress,
 
   private var state = State.UNINITED
 
-  private var channelFuture : ChannelFuture = null
+  private var channelFuture : ChannelFuture = _
 
-  private var ch : Channel = null
+  private var ch : Channel = _
 
   def getInvoker = invoker
 
@@ -78,6 +80,7 @@ abstract class Client(address : InetSocketAddress,
 
   def send(msg: AnyRef) {
     ch.synchronized {
+      RPC.logger debug "Prepare send msg whose type is " + msg getClass;
       ch writeAndFlush msg
     }
   }

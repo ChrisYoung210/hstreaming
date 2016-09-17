@@ -5,6 +5,8 @@ import java.net.InetSocketAddress
 import cn.ac.nci.ztb.hs.io.IntegerWritable
 import org.junit.{Assert, Before, Test}
 
+import scala.language.postfixOps
+
 /**
   * Created by Young on 16-9-5.
   */
@@ -22,12 +24,12 @@ class RPCTest {
   }
 
   @Test
-  def calculate: Unit = {
-    val valueL = 123;
-    val valueR = 234;
+  def calculate {
+    val valueL = 123
+    val valueR = 234
 
     Assert assertEquals(cal add(new IntegerWritable(valueL),
-      new IntegerWritable(valueR)), valueL+valueR)
+      new IntegerWritable(valueR)) getValue, valueL+valueR)
   }
 }
 

@@ -52,6 +52,12 @@ class KryoRpcEngine extends RpcEngine {
             new KryoRequestDecoder(KryoRpcPool getServerKryoPool) addLast
             new KryoResponseEncoder(KryoRpcPool getServerKryoPool) addLast
             new SimpleChannelInboundHandler[KryoRequestWrapper] {
+
+              override def channelActive(ctx: ChannelHandlerContext): Unit = {
+                KryoRpcEngine.logger debug "build connection with " + ctx.channel().remoteAddress()
+                super.channelActive(ctx)
+              }
+
               override def channelRead0(ctx: ChannelHandlerContext,
                                         msg: KryoRequestWrapper) {
                 try {
@@ -71,7 +77,7 @@ class KryoRpcEngine extends RpcEngine {
       }
     }
 
-    def getInstance(clazz : Class[_]) = protocolNameInsMap get clazz
+    def getInstance(clazz : Class[_]) = protocolNameInsMap(clazz)
   }
 
   private class KryoRpcClient(address : InetSocketAddress,
@@ -102,11 +108,15 @@ class KryoRpcEngine extends RpcEngine {
 
     private lazy val responses =
       new BlockingHashMap[Long, KryoResponseWrapper](Configuration
-        getIntOrDefault("rpc.timeout", 500))
+        getIntOrDefault("rpc.timeout", 10000))
 
-    def getResponse(requestId : Long) = responses get requestId
+    def getResponse(requestId : Long) = {
+      KryoRpcEngine.logger debug "Try to get Response by the id: " + requestId
+      responses get requestId
+    }
 
     override def putResponse(response: KryoResponseWrapper): Unit = {
+      KryoRpcEngine.logger debug "Put the response whose id is " + response.getRequestId
       responses put(response getRequestId, response)
     }
 
@@ -120,6 +130,7 @@ class KryoRpcEngine extends RpcEngine {
         method getName, params, requestId)
       client send requestWrapper
       val responseWrapper = getResponse(requestId)
+      KryoRpcEngine.logger debug((responseWrapper == null) + "")
       if (responseWrapper hasException) {
         KryoRpcEngine.logger warn(responseWrapper.getException toString,
           responseWrapper getException)

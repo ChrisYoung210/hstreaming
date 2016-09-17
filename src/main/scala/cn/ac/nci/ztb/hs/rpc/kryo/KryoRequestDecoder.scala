@@ -16,6 +16,7 @@ class KryoRequestDecoder(kryoPool : GenericObjectPool[Kryo]) extends ByteToMessa
   override def decode(ctx: ChannelHandlerContext,
                       in: ByteBuf,
                       out: util.List[AnyRef]) {
+    KryoRpcEngine.logger debug "Try to decode a msg from " + ctx.channel.remoteAddress()
     if (in.readableBytes >= 4) {
       val length = in getInt(in readerIndex)
       if (in.readableBytes >= 4+length) {

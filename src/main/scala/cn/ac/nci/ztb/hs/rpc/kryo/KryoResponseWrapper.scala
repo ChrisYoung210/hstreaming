@@ -14,7 +14,7 @@ class KryoResponseWrapper(response : Writable,
 
   def getRequestId = requestId
 
-  def hasException = exception == null
+  def hasException = exception != null
 
   def getException = exception
 

@@ -9,6 +9,8 @@
         <root level="info">
             <appender-ref ref="Console"/>
         </root>
-        <Logger name="cn.ac.nci.ztb.hs.rpc" level="debug" />
+        <Logger name="cn.ac.nci.ztb.hs.rpc" level="info" />
+        <Logger name="cn.ac.nci.ztb.hs.utils" level="info" />
     </loggers>
+
 </configuration>

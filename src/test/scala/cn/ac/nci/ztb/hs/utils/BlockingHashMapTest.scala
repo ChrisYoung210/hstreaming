@@ -14,6 +14,7 @@ class BlockingHashMapTest {
     val map = new BlockingHashMap[Int, Int](500)
     new Thread(new Runnable {
       override def run(): Unit = {
+        Thread.sleep(200)
         map put(1, 1)
         Thread.sleep(600)
         map put(2, 2)

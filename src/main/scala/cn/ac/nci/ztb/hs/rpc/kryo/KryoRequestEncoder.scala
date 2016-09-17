@@ -25,7 +25,8 @@ class KryoRequestEncoder(kryoPool : GenericObjectPool[Kryo]) extends
     kryo writeObject(output, msg)
     kryoPool returnObject kryo
     output flush()
-    output writeInt stream.size
-    output writeBytes stream.toByteArray
+    out writeInt stream.size
+    out writeBytes stream.toByteArray
+    KryoRpcEngine.logger debug "Msg has been Encoded."
   }
 }
