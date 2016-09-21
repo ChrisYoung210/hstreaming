@@ -46,6 +46,7 @@ abstract class Client(address : InetSocketAddress,
         false
       }
     }
+    this
   }
 
   override def start = {
@@ -61,6 +62,7 @@ abstract class Client(address : InetSocketAddress,
         false
       }
     }
+    this
   }
 
   override def stop = {
@@ -76,6 +78,7 @@ abstract class Client(address : InetSocketAddress,
         false
       }
     }
+    this
   }
 
   def send(msg: AnyRef) {

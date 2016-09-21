@@ -43,7 +43,7 @@ class KryoRpcEngine extends RpcEngine {
 
     override def addProtocolAndInstance[T <: AnyRef](clazz: Class[T], instance: T): Boolean =
       if (protocolNameInsMap contains clazz) false
-      else { protocolNameInsMap.+=((clazz, instance)); true}
+      else { protocolNameInsMap += clazz -> instance; true}
 
     override def getInitializer: ChannelInitializer[SocketChannel] = {
       new ChannelInitializer[SocketChannel] {

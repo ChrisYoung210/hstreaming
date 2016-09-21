@@ -4,11 +4,11 @@ package cn.ac.nci.ztb.hs.common
   * Created by Young on 16-8-30.
   */
 trait Service {
-  def init : Boolean
+  def init : Service
 
-  def start : Boolean
+  def start : Service
 
-  def stop : Boolean
+  def stop : Service
 
   object State extends Enumeration {
     type State = Value

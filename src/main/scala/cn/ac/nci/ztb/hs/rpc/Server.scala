@@ -3,6 +3,7 @@ package cn.ac.nci.ztb.hs.rpc
 import java.net.InetSocketAddress
 
 import cn.ac.nci.ztb.hs.common.{Configuration, Service}
+import cn.ac.nci.ztb.hs.exception.HSRuntimeException
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.{ChannelFuture, ChannelInitializer}
 import io.netty.channel.nio.NioEventLoopGroup
@@ -26,41 +27,50 @@ abstract class Server(address : InetSocketAddress) extends Service {
     Configuration getIntOrDefault("rpc.server.handler", 8))
 
   override def init = {
-    state.synchronized {
-      if (state equals State.UNINITED) {
-        server group(bossGroup, workerGroup) channel
-          classOf[NioServerSocketChannel] childHandler getInitializer
-        RPC.logger info getClass + "已完成初始化。"
-        state = State.INITED
-      } else {
-        RPC.logger error "由于Server服务状态错误" + getClass.toString + "初始化失败。"
-        false
+    synchronized {
+      state match {
+        case State.UNINITED =>
+          server group(bossGroup, workerGroup) channel
+            classOf[NioServerSocketChannel] childHandler getInitializer
+          RPC.logger info getClass + " has initialized."
+          state = State.INITED
+        case State.STOPED =>
+          val e = new IllegalStateException("The server cannot be re-initial, " +
+            "because it has been shutdown.")
+          RPC.logger error(e.getMessage, e)
+          throw e
+        case _ =>
+          RPC.logger warn s"Expect initial server, but current state is $state."
       }
     }
-    true
+    this
   }
 
   override def start = {
-    state.synchronized {
-      if (state equals State.INITED) {
-        channelFuture = server bind address sync()
-        state = State.STARTED
-        RPC.logger info getClass + "已完成启动。"
-      } else false
+    synchronized {
+      state match {
+        case State.INITED =>
+          channelFuture = server bind address sync()
+          RPC.logger info "Start server completely."
+          state = State.STARTED
+        case State.STARTED => RPC.logger warn "Server cannot be re-start."
+        case _ =>
+          val e = new IllegalStateException(s"The server cannot start, because its state is $state.")
+          RPC.logger error(e.getMessage, e)
+          throw e
+      }
     }
-    true
+    this
   }
 
   override def stop = {
-    state.synchronized {
-      if (state equals State.STARTED) {
-        channelFuture.channel.closeFuture.sync()
-        bossGroup.shutdownGracefully()
-        workerGroup.shutdownGracefully()
-        state = State.STOPED
-      } else false
+    synchronized {
+      if (channelFuture != null) channelFuture.channel().closeFuture().sync()
+      bossGroup.shutdownGracefully()
+      workerGroup.shutdownGracefully()
     }
-    true
+    state = State.STOPED
+    this
   }
 
   def addProtocolAndInstance[T <: AnyRef](clazz : Class[T], instance : T) : Boolean
