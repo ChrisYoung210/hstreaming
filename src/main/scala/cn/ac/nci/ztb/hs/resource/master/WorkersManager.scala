@@ -1,8 +1,10 @@
 package cn.ac.nci.ztb.hs.resource.master
 
+import java.net.InetSocketAddress
+
 import cn.ac.nci.ztb.hs.common.{Configuration, Service}
-import cn.ac.nci.ztb.hs.io.{IntegerWritable, StringWritable}
-import cn.ac.nci.ztb.hs.resource.common.{Resource, WorkerTracker, WorkerId}
+import cn.ac.nci.ztb.hs.resource.common.NodeAction.NodeAction
+import cn.ac.nci.ztb.hs.resource.common._
 import cn.ac.nci.ztb.hs.resource.master.scheduler.WorkerState
 import cn.ac.nci.ztb.hs.rpc.RPC
 import org.slf4j.LoggerFactory
@@ -11,9 +13,12 @@ import scala.collection.mutable
 import scala.language.postfixOps
 
 /**
-  * Created by Young on 16-9-18.
+  * @author Young
+  * @version 1.0 Create time 16-9-18
+  * object WorkersManager用于管理worker，包括作为Master-Worker协议的RPC Server，
+  * 并提供所有注册至Server的Worker信息等功能。
   */
-object WorkersManager extends Service {
+private[master] object WorkersManager extends Service {
 
   private val logger = LoggerFactory getLogger getClass
 
@@ -30,18 +35,40 @@ object WorkersManager extends Service {
           server init;
           server addProtocolAndInstance(classOf[WorkerTracker],
             new WorkerTracker {
+
               /**
-                * worker send its information to master after initialization
- *
-                * @param host             the host worker bound
-                * @param launcherPort     the port worker listened
-                * @param originalResource the worker's original resource
-                * @return master generate a new WorkerId and pass it to worker after confirm
+                * 当Worker向Master注册成功后，定时向Master发送心跳。
+                *
+                * @param workerId          Worker向Master注册时，Master分配的WorkerId
+                * @param state             Worker当前的健康状况
+                * @param remainingResource Worker当前资源剩余量
+                * @return Master通知Worker下一步行为
                 */
-              override def registerWorker(host: StringWritable,
-                                          launcherPort: IntegerWritable,
+              override def workerHeartbeat(workerId: WorkerId,
+                                           state: WorkerHealth,
+                                           remainingResource: Resource): NodeAction = {
+                val worker = registerWorkers(workerId)
+                if (worker == null) NodeAction.SHUTDOWN
+                else {
+                  worker updateRemainingResource remainingResource
+                  NodeAction.NORMAL
+                }
+              }
+
+              /**
+                * 用于接受Worker的注册信息，在验证可以注册后，向registerWorkers添加新节点的WorkerState
+                * 并分配返回WorkerId
+                *
+                * @param launcherHost     Worker的Launcher模块RPC绑定的IP
+                * @param launcherPort     Worker的Launcher模块RPC绑定的端口
+                * @param originalResource Worker启动后的资源总量
+                * @return Master在确认注册信息后会生成一个WorkerId并将其返回给注册的Worker
+                */
+              override def registerWorker(launcherHost: String,
+                                          launcherPort: Integer,
                                           originalResource: Resource): WorkerId = {
-                val workerState = new WorkerState(host, launcherPort, originalResource)
+                val workerState = new WorkerState(new InetSocketAddress(launcherHost, launcherPort),
+                  originalResource)
                 registerWorkers += ((workerState.workerId, workerState))
                 workerState.workerId
               }

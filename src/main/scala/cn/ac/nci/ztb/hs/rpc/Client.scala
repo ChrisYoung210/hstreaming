@@ -4,12 +4,11 @@ import java.net.InetSocketAddress
 import java.util.concurrent.atomic.AtomicInteger
 
 import cn.ac.nci.ztb.hs.common.{Configuration, Service}
-import cn.ac.nci.ztb.hs.io.Writable
 import io.netty.bootstrap.Bootstrap
-import io.netty.channel.{Channel, ChannelFuture, ChannelInitializer}
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.channel.{Channel, ChannelFuture, ChannelInitializer}
 
 import scala.language.postfixOps
 
@@ -17,7 +16,7 @@ import scala.language.postfixOps
   * Created by Young on 16-9-1.
   */
 abstract class Client(address : InetSocketAddress,
-                      invoker : RpcInvocationHandler[_ <: Writable]) extends Service {
+                      invoker : RpcInvocationHandler[_ <: Serializable]) extends Service {
 
   lazy val client : Bootstrap = new Bootstrap
 

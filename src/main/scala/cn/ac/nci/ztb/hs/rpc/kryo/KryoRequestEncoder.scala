@@ -27,6 +27,5 @@ class KryoRequestEncoder(kryoPool : GenericObjectPool[Kryo]) extends
     output flush()
     out writeInt stream.size
     out writeBytes stream.toByteArray
-    KryoRpcEngine.logger debug "Msg has been Encoded."
   }
 }

@@ -5,7 +5,6 @@ import java.lang.reflect.{InvocationTargetException, Method, Proxy}
 import java.net.InetSocketAddress
 
 import cn.ac.nci.ztb.hs.common.Configuration
-import cn.ac.nci.ztb.hs.io.Writable
 import cn.ac.nci.ztb.hs.utils.BlockingHashMap
 import com.esotericsoftware.kryo.Kryo
 import io.netty.channel.socket.SocketChannel
@@ -15,7 +14,7 @@ import org.apache.commons.pool2.{BasePooledObjectFactory, PooledObject}
 import org.objenesis.strategy.SerializingInstantiatorStrategy
 import org.slf4j.LoggerFactory
 
-import scala.collection.mutable.{HashMap, WeakHashMap}
+import scala.collection.mutable
 import scala.language.postfixOps
 
 /**
@@ -23,13 +22,14 @@ import scala.language.postfixOps
   */
 class KryoRpcEngine extends RpcEngine {
 
-  private lazy val PROXY_CACHE = new WeakHashMap[InetSocketAddress, WeakHashMap[Class[_], AnyRef]]
+  private lazy val PROXY_CACHE = new mutable.WeakHashMap[
+    InetSocketAddress, mutable.WeakHashMap[Class[_], AnyRef]]
 
   override def getProxy[T](clazz : Class[T],
                            address: InetSocketAddress) : T = {
     PROXY_CACHE synchronized {
       val tempMap = PROXY_CACHE getOrElseUpdate(address,
-        new WeakHashMap[Class[_], AnyRef])
+        new mutable.WeakHashMap[Class[_], AnyRef])
       tempMap.getOrElseUpdate(clazz, Proxy newProxyInstance(clazz getClassLoader,
         Array[java.lang.Class[_]](clazz), new Invoker(address, clazz))).asInstanceOf[T]
     }
@@ -39,7 +39,7 @@ class KryoRpcEngine extends RpcEngine {
 
   private class KryoRpcServer(address: InetSocketAddress) extends Server(address) {
 
-    private lazy val protocolNameInsMap = new HashMap[Class[_], AnyRef]
+    private lazy val protocolNameInsMap = new mutable.HashMap[Class[_], AnyRef]
 
     override def addProtocolAndInstance[T <: AnyRef](clazz: Class[T], instance: T): Boolean =
       if (protocolNameInsMap contains clazz) false
@@ -65,11 +65,10 @@ class KryoRpcEngine extends RpcEngine {
                   ctx writeAndFlush new KryoResponseWrapper(response,
                     msg getRequestId, null)
                 } catch {
-                  case e : InvocationTargetException => {
-                    RPC.logger warn(e toString, e)
+                  case e : InvocationTargetException =>
+                    KryoRpcEngine.logger warn(e toString, e)
                     ctx writeAndFlush new KryoResponseWrapper(
                       null, msg getRequestId, e getCause)
-                  }
                 }
               }
             }
@@ -123,14 +122,11 @@ class KryoRpcEngine extends RpcEngine {
     override def invoke(proxy: scala.Any,
                         method: Method,
                         args: Array[AnyRef]) = {
-      val params = new Array[Writable](args.length)
-      for (i <- args.indices) params(i) = args(i).asInstanceOf[Writable]
       val requestId = client getNextRequestId
       val requestWrapper = new KryoRequestWrapper(protocol,
-        method getName, params, requestId)
+        method.getName, args, requestId)
       client send requestWrapper
       val responseWrapper = getResponse(requestId)
-      KryoRpcEngine.logger debug((responseWrapper == null) + "")
       if (responseWrapper hasException) {
         KryoRpcEngine.logger warn(responseWrapper.getException toString,
           responseWrapper getException)

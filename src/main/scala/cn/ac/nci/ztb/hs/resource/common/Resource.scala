@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 /**
   * Created by Young on 16-9-18.
   */
-case class Resource(memory : LongWritable, virtual_cpu : IntegerWritable)
+case class Resource(memory : Long, virtual_cpu : Int)
   extends ComparableWritable[Resource] {
 
   def getMemory = memory

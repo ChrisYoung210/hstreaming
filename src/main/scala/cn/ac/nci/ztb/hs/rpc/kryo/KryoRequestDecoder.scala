@@ -18,15 +18,16 @@ class KryoRequestDecoder(kryoPool : GenericObjectPool[Kryo]) extends ByteToMessa
                       out: util.List[AnyRef]) {
     KryoRpcEngine.logger debug "Try to decode a msg from " + ctx.channel.remoteAddress()
     if (in.readableBytes >= 4) {
-      val length = in getInt(in readerIndex)
+      val length = in getInt(in readerIndex())
       if (in.readableBytes >= 4+length) {
-        in readInt
+        in readInt()
         val buf = new Array[Byte](length)
         in readBytes buf
         val input = new Input(buf)
         val kryo = kryoPool borrowObject()
         val requestWrapper = kryo readObject(input, classOf[KryoRequestWrapper])
         kryoPool returnObject kryo
+        KryoRpcEngine.logger debug s"服务器端反序列化后的InetSocketAddress: ${requestWrapper.getRequestParameters(1)}"
         out add requestWrapper
       }
     }

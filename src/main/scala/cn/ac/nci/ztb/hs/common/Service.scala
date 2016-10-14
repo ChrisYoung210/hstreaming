@@ -4,6 +4,9 @@ package cn.ac.nci.ztb.hs.common
   * Created by Young on 16-8-30.
   */
 trait Service {
+
+  protected var state = State.UNINITED
+
   def init : Service
 
   def start : Service

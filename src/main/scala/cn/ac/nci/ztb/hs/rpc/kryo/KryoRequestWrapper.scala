@@ -1,6 +1,5 @@
 package cn.ac.nci.ztb.hs.rpc.kryo
 
-import cn.ac.nci.ztb.hs.io.Writable
 
 import scala.language.postfixOps
 
@@ -9,17 +8,23 @@ import scala.language.postfixOps
   */
 class KryoRequestWrapper(protocolClazz : Class[_],
                          methodName : String,
-                         requestParameters : Array[Writable],
-                         requestId : Long) extends Writable {
-  def call(instance : AnyRef) : Writable = {
-    KryoRpcEngine.logger debug "The type of instance is " + instance.getClass
+                         requestParameters : Array[AnyRef],
+                         requestId : Long) extends Serializable {
+
+  {
+    KryoRpcEngine.logger debug s"In client KryoRequestWrapper ${requestParameters(0)}"
+  }
+
+  def getRequestParameters(index: Int) = requestParameters(index)
+
+  def call(instance : AnyRef) : AnyRef = {
     val parametersType =
       new Array[Class[_]](requestParameters length)
     for (i <- requestParameters.indices)
       parametersType(i) = requestParameters(i) getClass
-    val method = instance getClass() getMethod(methodName, parametersType : _*)
+    val method = instance.getClass getMethod(methodName, parametersType : _*)
     method setAccessible true
-    method.invoke(instance, requestParameters: _*).asInstanceOf[Writable]
+    method.invoke(instance, requestParameters: _*)
   }
 
   def getProtocolClass = protocolClazz

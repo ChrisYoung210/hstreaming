@@ -1,14 +1,12 @@
 package cn.ac.nci.ztb.hs.rpc.kryo
 
-import cn.ac.nci.ztb.hs.io.Writable
-
 /**
   * Created by Young on 16-9-2.
   */
-class KryoResponseWrapper(response : Writable,
+class KryoResponseWrapper(response : AnyRef,
                           requestId : Long,
                           exception : java.lang.Throwable)
-  extends Writable {
+  extends Serializable {
 
   def getResponse = response
 
