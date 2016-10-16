@@ -17,8 +17,6 @@ abstract class Server(address : InetSocketAddress) extends Service {
 
   private val server : ServerBootstrap = new ServerBootstrap
 
-  private var state = State.UNINITED
-
   private var channelFuture : ChannelFuture = null
 
   private lazy val bossGroup = new NioEventLoopGroup

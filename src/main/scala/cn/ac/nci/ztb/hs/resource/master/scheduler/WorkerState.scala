@@ -14,7 +14,7 @@ private[resource] class WorkerState(address: InetSocketAddress,
                   totalResource: Resource) {
   val workerId = WorkerId.getNewWorkerId
   private var lastUpdateTimestamp = System.currentTimeMillis
-  private var used = new Resource(LongWritable(0), IntegerWritable(0))
+  private var used = new Resource(0l, 0)
   private var remaining = totalResource.copy()
 
   private def updateTimestamp() { lastUpdateTimestamp = System.currentTimeMillis}

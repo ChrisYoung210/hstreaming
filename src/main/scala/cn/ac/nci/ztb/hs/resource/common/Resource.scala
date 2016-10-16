@@ -49,7 +49,7 @@ case class Resource(memory : Long, virtual_cpu : Int)
   override def toString = s"[memory: $translate, virtual_cpu_number: $virtual_cpu.]"
 
   private def translate : String = {
-    var currentMemory = memory.value
+    var currentMemory = memory
     for(i <- Resource.sizeUnit.indices) {
       if (Resource.sizeUnit.length == i+1 || currentMemory < 1024)
         return currentMemory + Resource.sizeUnit(i)

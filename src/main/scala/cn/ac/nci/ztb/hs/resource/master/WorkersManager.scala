@@ -22,8 +22,6 @@ private[master] object WorkersManager extends Service {
 
   private val logger = LoggerFactory getLogger getClass
 
-  private var state = State.UNINITED
-
   private val registerWorkers = new mutable.HashMap[WorkerId, WorkerState]()
 
   private val server = RPC.getServer(Configuration getIntOrDefault("master.rpc.port", 8765))

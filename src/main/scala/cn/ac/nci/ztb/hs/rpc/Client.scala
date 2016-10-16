@@ -25,8 +25,6 @@ abstract class Client(address : InetSocketAddress,
   private lazy val workerGroup = new NioEventLoopGroup(Configuration.
     getIntOrDefault("rpc.client.handler", 4))
 
-  private var state = State.UNINITED
-
   private var channelFuture : ChannelFuture = _
 
   private var ch : Channel = _

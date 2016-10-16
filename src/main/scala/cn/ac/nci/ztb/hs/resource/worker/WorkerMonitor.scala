@@ -2,6 +2,7 @@ package cn.ac.nci.ztb.hs.resource.worker
 
 import cn.ac.nci.ztb.hs.common.Service
 import cn.ac.nci.ztb.hs.resource.common.Resource
+import cn.ac.nci.ztb.hs.resource.worker.ResourceDetectorImpl.detector
 import org.slf4j.LoggerFactory
 
 /**

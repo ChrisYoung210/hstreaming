@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.ac.nci.ztb</groupId>
-    <artifactId>hs</artifactId>
+    <artifactId>hstreaming</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <build>

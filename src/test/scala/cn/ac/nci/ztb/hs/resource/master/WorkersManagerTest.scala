@@ -26,7 +26,7 @@ class WorkersManagerTest {
   @Test
   def test() {
     val id = resourceTracker.registerWorker("192.168.12.113", 8787,
-      new Resource(LongWritable(128849011888l), IntegerWritable(8)))
+      new Resource(128849011888l, 8))
     assertEquals(id.getId, 0)
     println(WorkersManager)
   }
