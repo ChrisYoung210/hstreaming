@@ -19,6 +19,8 @@ import scala.language.postfixOps
 
 /**
   * Created by Young on 16-9-1.
+  * 类KryoRpcEngine用于完成基于Kryo序列化的RPC传输，要求RPC协议中所有方法的所有参数以及返回值
+  * 均实现了Serializable接口，或者实现Writable、ComparableWritable接口。
   */
 class KryoRpcEngine extends RpcEngine {
 
@@ -138,11 +140,14 @@ class KryoRpcEngine extends RpcEngine {
 }
 
 object KryoRpcEngine {
-  val logger = LoggerFactory getLogger classOf[KryoRpcEngine]
 
+  val logger = LoggerFactory getLogger classOf[KryoRpcEngine]
 
 }
 
+/**
+  *
+  */
 private object KryoRpcPool {
 
   class KryoPool extends BasePooledObjectFactory[Kryo] {
