@@ -1,11 +1,16 @@
 package cn.ac.nci.ztb.hs.resource.worker
 
-import cn.ac.nci.ztb.hs.common.Service
-import cn.ac.nci.ztb.hs.resource.common.Resource
+import java.net.{InetSocketAddress, NetworkInterface}
+
+import cn.ac.nci.ztb.hs.common.{Configuration, Service}
+import cn.ac.nci.ztb.hs.resource.common.{Resource, WorkerTracker}
 import cn.ac.nci.ztb.hs.resource.worker.ResourceDetectorImpl.detector
+import cn.ac.nci.ztb.hs.rpc.RPC
 import org.slf4j.LoggerFactory
 
 /**
+  * 该伴生对象运行于Worker节点，用于Worker启动后向Master注册该节点信息，
+  * 并且在正常运行时管理、监控Worker端资源状况。
   * @author Young
   * @version 1.0
   * CreateTime: 16-10-13 上午10:56
@@ -14,12 +19,39 @@ object WorkerMonitor extends Service {
 
   private val logger = LoggerFactory getLogger WorkerMonitor.getClass
 
+  //资源探测器，根据实际运行时使用指定的资源探测器
   private var resourceDetector: ResourceDetector[Resource] = _
+
+  private lazy val masterHost = Configuration get "h.master"
+
+  private lazy val masterPort = Configuration getInt "h.master.port"
+
+  private lazy val localIP = {
+    val interfaces = NetworkInterface getNetworkInterfaces()
+    var ip: String = ""
+    while (interfaces hasMoreElements) {
+      val interface = interfaces nextElement()
+      if (!interface.isLoopback && !interface.isVirtual) {
+        ip = interface.getInetAddresses.nextElement().getHostAddress
+      }
+    }
+    ip
+  }
+
+  private lazy val localPort = Configuration getInt "h.launcher.port"
+
+  private lazy val workerTracker =
+    RPC.getProxy(classOf[WorkerTracker],
+      new InetSocketAddress(masterHost, masterPort))
+
+  private val workerId = workerTracker registerWorker(localIP, localPort, null)
 
   def startDetector(implicit resourceDetector: ResourceDetector[Resource]) = {
     this.resourceDetector = resourceDetector
     new Thread(resourceDetector) start
   }
+
+
 
   override def init: Service = {
     state.synchronized {

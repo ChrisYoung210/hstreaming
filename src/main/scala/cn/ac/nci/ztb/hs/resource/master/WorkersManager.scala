@@ -68,6 +68,7 @@ private[master] object WorkersManager extends Service {
                 val workerState = new WorkerState(new InetSocketAddress(launcherHost, launcherPort),
                   originalResource)
                 registerWorkers += ((workerState.workerId, workerState))
+                logger info s"接收到Worker（$launcherHost）的注册信息，为其分配WorkerID=$WorkerId。"
                 workerState.workerId
               }
             })

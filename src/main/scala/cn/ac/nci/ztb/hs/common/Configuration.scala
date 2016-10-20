@@ -13,9 +13,9 @@ object Configuration {
     elements getOrElseUpdate(key, default.toString) toInt
   }
 
-  def get(key: String) = {
-    elements(key)
-  }
+  def get(key: String) = elements(key)
+
+  def getInt(key: String) = elements(key) toInt
 
   def getOrDefault(key: String, default: Any) = {
     elements getOrElseUpdate(key, default toString)

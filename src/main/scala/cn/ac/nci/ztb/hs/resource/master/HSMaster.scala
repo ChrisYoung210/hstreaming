@@ -6,7 +6,7 @@ package cn.ac.nci.ztb.hs.resource.master
   */
 object HSMaster {
   def main(args: Array[String]): Unit = {
-    println("main")
-    Thread.sleep(10000)
+    WorkersManager.init
+    WorkersManager.start
   }
 }
