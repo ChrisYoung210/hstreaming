@@ -1,6 +1,6 @@
 package cn.ac.nci.ztb.hs.resource.worker
 
-import java.net.{InetSocketAddress, NetworkInterface}
+import java.net.{InetAddress, InetSocketAddress, NetworkInterface}
 
 import cn.ac.nci.ztb.hs.common.{Configuration, Service}
 import cn.ac.nci.ztb.hs.resource.common.{Resource, WorkerTracker}
@@ -22,29 +22,20 @@ object WorkerMonitor extends Service {
   //资源探测器，根据实际运行时使用指定的资源探测器
   private var resourceDetector: ResourceDetector[Resource] = _
 
-  private lazy val masterHost = Configuration get "h.master"
+  private lazy val masterHost = Configuration("master.host")
 
-  private lazy val masterPort = Configuration getInt "h.master.port"
+  private lazy val masterPort = Configuration getInt "master.port"
 
-  private lazy val localIP = {
-    val interfaces = NetworkInterface getNetworkInterfaces()
-    var ip: String = ""
-    while (interfaces hasMoreElements) {
-      val interface = interfaces nextElement()
-      if (!interface.isLoopback && !interface.isVirtual) {
-        ip = interface.getInetAddresses.nextElement().getHostAddress
-      }
-    }
-    ip
-  }
+  private lazy val localIP = InetAddress.getLocalHost.getHostAddress
 
-  private lazy val localPort = Configuration getInt "h.launcher.port"
+  private lazy val localPort = Configuration getInt "worker.launcher.port"
 
   private lazy val workerTracker =
     RPC.getProxy(classOf[WorkerTracker],
       new InetSocketAddress(masterHost, masterPort))
 
-  private val workerId = workerTracker registerWorker(localIP, localPort, null)
+  private val workerId = workerTracker registerWorker(localIP,
+    localPort, new Resource(1234567890l, 8))
 
   def startDetector(implicit resourceDetector: ResourceDetector[Resource]) = {
     this.resourceDetector = resourceDetector

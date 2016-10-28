@@ -18,8 +18,8 @@ object ResourceDetectorImpl extends {
         while (!interrupt) {
           Thread.sleep(3000)
           lock.synchronized {
-            value = Resource(Configuration getOrDefault ("worker.memory", 128849011888l) toLong,
-              Configuration getOrDefault("worker.cpu", 8) toInt)
+            value = Resource(Configuration.getOrDefault("worker.memory", 128849011888l).toLong,
+              Configuration.getOrDefault("worker.cpu", 8).toInt)
             timestamp = System.currentTimeMillis
           }
         }

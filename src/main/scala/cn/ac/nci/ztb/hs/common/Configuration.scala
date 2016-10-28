@@ -1,23 +1,36 @@
 package cn.ac.nci.ztb.hs.common
 
-import scala.collection.mutable
+import com.typesafe.config.{ConfigException, ConfigFactory}
+import org.slf4j.LoggerFactory
 
 /**
   * Created by Young on 16-8-30.
   */
 object Configuration {
 
-  private lazy val elements = new mutable.HashMap[String, String]
+  private val config = ConfigFactory.load
 
-  def getIntOrDefault(key : String, default : Int) = {
-    elements getOrElseUpdate(key, default.toString) toInt
+  private val logger = LoggerFactory getLogger getClass
+
+  def getIntOrDefault(key : String, default : Int) = getOrDefault(key, default).toInt
+
+  def apply(key: String) = {
+    logger debug s"尝试获取配置项$key"
+    config getString key
   }
 
-  def get(key: String) = elements(key)
+  def getInt(key: String) = Configuration(key).toInt
 
-  def getInt(key: String) = elements(key) toInt
+  def getOrDefault(key: String, default: Any) =
+    try {
+      Configuration(key)
+    } catch {
+      case _: ConfigException.Missing => default.toString
+    }
 
-  def getOrDefault(key: String, default: Any) = {
-    elements getOrElseUpdate(key, default toString)
+
+  def main(args: Array[String]): Unit = {
+    println(Configuration("h.master.port"))
+    println(Configuration("h.master.host"))
   }
 }

@@ -24,7 +24,7 @@ private[master] object WorkersManager extends Service {
 
   private val registerWorkers = new mutable.HashMap[WorkerId, WorkerState]()
 
-  private val server = RPC.getServer(Configuration getIntOrDefault("master.rpc.port", 8765))
+  private val server = RPC.getServer(Configuration getIntOrDefault("master.port", 8888))
 
   override def init = {
     this.synchronized {
