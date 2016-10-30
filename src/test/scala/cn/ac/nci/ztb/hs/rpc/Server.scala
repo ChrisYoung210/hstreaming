@@ -16,11 +16,11 @@ class RPCTest {
   var cal : Protocol = _
   @Before
   def startServer {
-    server = RPC.getServer(8888, "localhost")
+    server = RPC.getServer(8889, "localhost")
     server init;
     server start;
     server.addProtocolAndInstance(classOf[Protocol], new ProtocolImpl)
-    cal = RPC.getProxy(classOf[Protocol], new InetSocketAddress("localhost", 8888))
+    cal = RPC.getProxy(classOf[Protocol], new InetSocketAddress("localhost", 8889))
   }
 
   @Test

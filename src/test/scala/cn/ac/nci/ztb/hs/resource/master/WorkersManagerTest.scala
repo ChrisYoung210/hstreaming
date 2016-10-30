@@ -20,7 +20,7 @@ class WorkersManagerTest {
     WorkersManager.init
     WorkersManager.start
     resourceTracker = RPC.getProxy(classOf[WorkerTracker],
-      new InetSocketAddress("localhost", 8765))
+      new InetSocketAddress("localhost", 8888))
   }
 
   @Test
