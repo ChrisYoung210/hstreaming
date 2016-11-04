@@ -13,6 +13,5 @@ object HSWorker {
   def main(args: Array[String]): Unit = {
     WorkerMonitor.init
     WorkerMonitor.start
-    logger info "HSWorker启动完成。"
   }
 }

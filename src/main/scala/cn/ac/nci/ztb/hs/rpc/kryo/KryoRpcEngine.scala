@@ -165,7 +165,7 @@ private object KryoRpcPool {
 
   lazy val serverPool = new GenericObjectPool[Kryo](new KryoPool, {
     val config = new GenericObjectPoolConfig
-    config setMaxTotal(Configuration getIntOrDefault("server.kryo.number", 20))
+    config setMaxTotal(Configuration getIntOrDefault("kryo.server.number", 20))
     config
   })
 
@@ -173,7 +173,7 @@ private object KryoRpcPool {
 
   lazy val clientPool = new GenericObjectPool[Kryo](new KryoPool, {
     val config = new GenericObjectPoolConfig
-    config setMaxTotal(Configuration getIntOrDefault("client.kryo.number", 5))
+    config setMaxTotal(Configuration getIntOrDefault("kryo.client.number", 5))
     config
   })
 

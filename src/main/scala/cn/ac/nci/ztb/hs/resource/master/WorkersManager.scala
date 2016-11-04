@@ -15,7 +15,7 @@ import scala.language.postfixOps
 /**
   * @author Young
   * @version 1.0 Create time 16-9-18
-  * object WorkersManager用于管理worker，包括作为Master-Worker协议的RPC Server，
+  * WorkersManager用于管理worker，包括作为Master-Worker协议的RPC Server，
   * 并提供所有注册至Server的Worker信息等功能。
   */
 private[master] object WorkersManager extends Service {
@@ -68,7 +68,7 @@ private[master] object WorkersManager extends Service {
                 val workerState = new WorkerState(new InetSocketAddress(launcherHost, launcherPort),
                   originalResource)
                 registerWorkers += ((workerState.workerId, workerState))
-                logger info s"接收到Worker（$launcherHost）的注册信息，为其分配WorkerID=$WorkerId。"
+                logger info s"接收到Worker（$launcherHost）的注册信息，为其分配WorkerID=${workerState.workerId}。"
                 workerState.workerId
               }
             })
