@@ -1,11 +1,13 @@
-package cn.ac.nci.ztb.hs.resource.master
+package cn.ac.nci.ztb.hs.resource
+package master
 
 import java.net.InetSocketAddress
 
 import cn.ac.nci.ztb.hs.common.{Configuration, Service}
-import cn.ac.nci.ztb.hs.resource.common.NodeAction.NodeAction
-import cn.ac.nci.ztb.hs.resource.common._
-import cn.ac.nci.ztb.hs.resource.master.scheduler.WorkerState
+import common.NodeAction.NodeAction
+import common.WorkerHealth.WorkerHealth
+import common._
+import scheduler.WorkerState
 import cn.ac.nci.ztb.hs.rpc.RPC
 import org.slf4j.LoggerFactory
 
@@ -46,6 +48,7 @@ private[master] object WorkersManager extends Service {
                                            state: WorkerHealth,
                                            remainingResource: Resource): NodeAction = {
                 val worker = registerWorkers(workerId)
+                logger debug s"$WorkerId: $state, $remainingResource."
                 if (worker == null) NodeAction.SHUTDOWN
                 else {
                   worker updateRemainingResource remainingResource

@@ -27,7 +27,6 @@ class KryoRequestDecoder(kryoPool : GenericObjectPool[Kryo]) extends ByteToMessa
         val kryo = kryoPool borrowObject()
         val requestWrapper = kryo readObject(input, classOf[KryoRequestWrapper])
         kryoPool returnObject kryo
-        KryoRpcEngine.logger debug s"服务器端反序列化后的InetSocketAddress: ${requestWrapper.getRequestParameters(1)}"
         out add requestWrapper
       }
     }

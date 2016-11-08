@@ -1,9 +1,10 @@
-package cn.ac.nci.ztb.hs.resource.common
+package cn.ac.nci.ztb.hs.resource
+package common
 
 /**
   * Created by Young on 16-9-21.
   */
-class WorkerHealth extends Enumeration {
-  type NORMAL = Value
+object WorkerHealth extends Enumeration {
+  type WorkerHealth = Value
   val NORMAL, ABNORMAL= Value
 }

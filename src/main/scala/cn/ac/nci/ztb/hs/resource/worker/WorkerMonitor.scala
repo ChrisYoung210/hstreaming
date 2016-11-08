@@ -4,7 +4,7 @@ import java.net.{InetAddress, InetSocketAddress, NetworkInterface}
 
 import cn.ac.nci.ztb.hs.common.{Configuration, Service}
 import cn.ac.nci.ztb.hs.resource.common.{Resource, WorkerTracker}
-import cn.ac.nci.ztb.hs.resource.worker.ResourceDetectorImpl.detector
+import cn.ac.nci.ztb.hs.resource.worker.ResourceDetectorImpl
 import cn.ac.nci.ztb.hs.rpc.RPC
 import org.slf4j.LoggerFactory
 
@@ -20,7 +20,7 @@ object WorkerMonitor extends Service {
   private val logger = LoggerFactory getLogger WorkerMonitor.getClass
 
   //资源探测器，根据实际运行时使用指定的资源探测器
-  private var resourceDetector: ResourceDetector[Resource] = _
+  //private var resourceDetector: ResourceDetector = _
 
   private lazy val masterHost = Configuration("master.host")
 
@@ -37,9 +37,11 @@ object WorkerMonitor extends Service {
   private val workerId = workerTracker registerWorker(localIP,
     localPort, new Resource(1234567890l, 8))
 
-  def startDetector(implicit resourceDetector: ResourceDetector[Resource]) = {
-    this.resourceDetector = resourceDetector
-    new Thread(resourceDetector) start
+  def startDetector(resourceDetector: ResourceDetector =
+                   new ResourceDetectorImpl(workerId, workerTracker)) = {
+    /*this.resourceDetector = resourceDetector
+    new Thread(resourceDetector) start*/
+    resourceDetector startContinuousDetect
   }
 
 
@@ -56,7 +58,7 @@ object WorkerMonitor extends Service {
   override def start: Service = {
     state.synchronized {
       if (state eq State.INITED) {
-        startDetector
+        startDetector()
         logger info getClass + "已完成启动。"
         state = State.STARTED
         true
@@ -71,7 +73,7 @@ object WorkerMonitor extends Service {
   override def stop: Service = {
     state.synchronized {
       if (state eq State.STARTED) {
-        resourceDetector setInterrupt()
+        //resourceDetector setInterrupt()
         state = State.STOPED
         logger info getClass + "已停止。"
         true

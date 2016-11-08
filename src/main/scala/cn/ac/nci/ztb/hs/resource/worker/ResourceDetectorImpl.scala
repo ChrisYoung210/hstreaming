@@ -1,17 +1,23 @@
 package cn.ac.nci.ztb.hs.resource
 package worker
 
+import java.util.TimerTask
+
 import cn.ac.nci.ztb.hs.common.Configuration
-import common.Resource
+import common.{Resource, WorkerHealth, WorkerId, WorkerTracker}
 
 /**
   * @author Young
   * @version 1.0
   * CreateTime: 16-10-13 下午2:26
   */
-object ResourceDetectorImpl extends {
+class ResourceDetectorImpl(workerId: WorkerId,
+                           workerTracker: WorkerTracker)
+  extends ResourceDetector{
 
-  implicit val detector: ResourceDetector[Resource] =
+
+
+  /*implicit val detector: ResourceDetector[Resource] =
     new ResourceDetector[Resource] {
 
       override def run(): Unit = {
@@ -24,5 +30,14 @@ object ResourceDetectorImpl extends {
           }
         }
       }
+    }*/
+  override def getDetectTask: TimerTask = {
+    new TimerTask {
+      override def run() {
+        workerTracker.workerHeartbeat(workerId, WorkerHealth.NORMAL,
+          Resource(Configuration.getOrDefault("worker.memory", 128849011888l).toLong,
+            Configuration.getOrDefault("worker.cpu", 8).toInt))
+      }
     }
+  }
 }

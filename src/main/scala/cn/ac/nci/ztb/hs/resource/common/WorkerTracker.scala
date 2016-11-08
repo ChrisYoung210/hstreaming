@@ -1,8 +1,8 @@
-package cn.ac.nci.ztb.hs.resource.common
+package cn.ac.nci.ztb.hs.resource
+package common
 
-import java.net.InetSocketAddress
-
-import cn.ac.nci.ztb.hs.resource.common.NodeAction.NodeAction
+import NodeAction.NodeAction
+import WorkerHealth.WorkerHealth
 
 /**
   * Created by Young on 16-9-19.

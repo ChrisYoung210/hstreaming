@@ -10,5 +10,6 @@
             <appender-ref ref="Console"/>
         </root>
         <Logger name="cn.ac.nci.ztb.hs.common" level="debug" />
+        <Logger name="cn.ac.nci.ztb.hs.resource" level="debug" />
     </loggers>
 </configuration>
