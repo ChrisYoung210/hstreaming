@@ -48,7 +48,9 @@ private[master] object WorkersManager extends Service {
                                            state: WorkerHealth,
                                            remainingResource: Resource): NodeAction = {
                 val worker = registerWorkers(workerId)
-                logger debug s"$WorkerId: $state, $remainingResource."
+                logger debug s"$WorkerId"
+                logger debug s"$state"
+                logger debug s"$remainingResource."
                 if (worker == null) NodeAction.SHUTDOWN
                 else {
                   worker updateRemainingResource remainingResource
