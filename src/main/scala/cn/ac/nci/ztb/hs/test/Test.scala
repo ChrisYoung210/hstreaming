@@ -2,6 +2,7 @@ package cn.ac.nci.ztb.hs.test
 
 import java.io.ByteArrayOutputStream
 
+import cn.ac.nci.ztb.hs.test.TestEnum.TestEnum
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.{Input, Output}
 import org.objenesis.strategy.SerializingInstantiatorStrategy
@@ -13,7 +14,7 @@ import org.objenesis.strategy.SerializingInstantiatorStrategy
   */
 object Test {
 
-  def serilizable(kryo: Kryo, obj: AnyRef): Array[Byte] = {
+  def serialization(kryo: Kryo, obj: AnyRef): Array[Byte] = {
     val stream = new ByteArrayOutputStream
     val out = new Output(stream)
     kryo writeObject(out, obj)
@@ -21,21 +22,20 @@ object Test {
     stream.toByteArray
   }
 
-  def deserilizable(kryo: Kryo, arr: Array[Byte]): AnyRef = {
+  def deserialization(kryo: Kryo, arr: Array[Byte]): AnyRef = {
     val in = new Input(arr)
-    kryo.readObject(in, classOf[ABC])
+    kryo.readObject(in, classOf[TestEnum])
   }
 
   def main(args: Array[String]): Unit = {
     val kryo = new Kryo()
     kryo setInstantiatorStrategy new SerializingInstantiatorStrategy
-    kryo.register(classOf[ABC])
+    kryo.register(classOf[TestEnum])
 
-    val s = serilizable(kryo, new ABC)
-    println(deserilizable(kryo, s).asInstanceOf[ABC])
+    val s = serialization(kryo, TestEnum.FIRST)
+    println(deserialization(kryo, s).asInstanceOf[TestEnum])
   }
 }
-
 class ABC extends Serializable {
   val number = TestEnum.FIRST
 
