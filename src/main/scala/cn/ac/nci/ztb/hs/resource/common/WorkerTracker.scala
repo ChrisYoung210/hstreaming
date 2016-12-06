@@ -1,11 +1,13 @@
 package cn.ac.nci.ztb.hs.resource
 package common
 
-import NodeAction.NodeAction
 import WorkerHealth.WorkerHealth
+import NodeAction.NodeAction
 
 /**
-  * Created by Young on 16-9-19.
+  * @author Young
+  * @version 1.0
+  * CreateTime: 16-9-19 上午9:32
   */
 trait WorkerTracker {
 

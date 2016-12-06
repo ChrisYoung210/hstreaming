@@ -15,9 +15,9 @@ import org.slf4j.LoggerFactory
   * @version 1.0
   * CreateTime: 16-10-13 上午10:56
   */
-object WorkerMonitor extends Service {
+private[resource] object WorkerMonitor extends Service {
 
-  private val logger = LoggerFactory getLogger WorkerMonitor.getClass
+  val logger = LoggerFactory getLogger WorkerMonitor.getClass
 
   //资源探测器，根据实际运行时使用指定的资源探测器
   //private var resourceDetector: ResourceDetector = _
@@ -35,7 +35,7 @@ object WorkerMonitor extends Service {
       new InetSocketAddress(masterHost, masterPort))
 
   private val workerId = workerTracker registerWorker(localIP,
-    localPort, new Resource(1234567890l, 8))
+    localPort, new Resource(128849011888l, 8))
 
   def startDetector(resourceDetector: ResourceDetector =
                    new ResourceDetectorImpl(workerId, workerTracker)) = {

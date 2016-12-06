@@ -4,7 +4,11 @@ package common
 /**
   * Created by Young on 16-9-21.
   */
-object WorkerHealth extends Enumeration {
-  type WorkerHealth = Value
-  val NORMAL, ABNORMAL= Value
+object WorkerHealth {
+
+  type WorkerHealth = Int
+
+  val NORMAL = 0
+  val ABNORMAL = 1
+
 }

@@ -1,6 +1,6 @@
 package cn.ac.nci.ztb.hs.resource.common
 
-import cn.ac.nci.ztb.hs.io.{ComparableWritable, IntegerWritable, LongWritable}
+import cn.ac.nci.ztb.hs.io.ComparableWritable
 import org.slf4j.LoggerFactory
 
 /**
@@ -18,14 +18,14 @@ case class Resource(memory : Long, virtual_cpu : Int)
     else virtual_cpu compareTo o.virtual_cpu
 
   override def -(o : Resource) : Resource = {
-    val result = this - o
+    val result = copy(memory-o.memory, virtual_cpu-o.virtual_cpu)
     if (result.memory < 0) {
-      val e =  new IllegalStateException("The residual of Memory cannot be negative.")
+      val e =  new IllegalStateException(s"剩余内存量不能为负数，计算得剩余能存量为${result.memory}")
       Resource.logger warn(e.getMessage, e)
       throw e
     }
     if (result.virtual_cpu < 0) {
-      val e =  new IllegalStateException("The residual of Virtual_CPU cannot be negative.")
+      val e =  new IllegalStateException(s"剩余CPU核数不能为负数，计算得剩余内存量为${result.virtual_cpu}")
       Resource.logger warn(e.getMessage, e)
       throw e
     }
@@ -46,7 +46,7 @@ case class Resource(memory : Long, virtual_cpu : Int)
 
   override def hashCode = virtual_cpu.hashCode + memory.hashCode
 
-  override def toString = s"[memory: $translate, virtual_cpu_number: $virtual_cpu.]"
+  override def toString = s"[内存量：$translate, 虚拟CPU核数：$virtual_cpu.]"
 
   private def translate : String = {
     var currentMemory = memory

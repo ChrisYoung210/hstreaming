@@ -22,6 +22,6 @@ private[worker] abstract class ResourceDetector {
   def getDetectTask: TimerTask
 
   def startContinuousDetect {
-    timer.schedule(getDetectTask, detectPeriod)
+    timer.schedule(getDetectTask, 0, detectPeriod)
   }
 }

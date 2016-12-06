@@ -62,13 +62,12 @@ class KryoRpcEngine extends RpcEngine {
 
     private lazy val protocolNameInsMap = new mutable.HashMap[Class[_], (AnyRef, Array[Method])]
 
-    //private lazy val protocolNameMethodsMap = new mutable.HashMap[Class[], AnyRef]()
-
     override def addProtocolAndInstance[T <: AnyRef](clazz: Class[T], instance: T): Boolean =
       if (protocolNameInsMap contains clazz) false
       else {
         protocolNameInsMap += clazz -> (instance, clazz.getMethods.sorted.map{
           x => {
+            KryoRpcEngine.logger debug s"${x.toString}"
             x.setAccessible(true)
             x
           }
@@ -93,6 +92,7 @@ class KryoRpcEngine extends RpcEngine {
                                         msg: KryoRequestWrapper) {
                 try {
                   val instanceAndMethod = getInstanceAndMethod(msg getProtocolClass, msg getMethodId)
+                  //KryoRpcEngine.logger debug s"${instanceAndMethod._2.toString}"
                   val response = instanceAndMethod._2.invoke(instanceAndMethod._1, msg getRequestParameters: _*)
                   ctx writeAndFlush new KryoResponseWrapper(response,
                     msg getRequestId, null)
@@ -142,7 +142,10 @@ class KryoRpcEngine extends RpcEngine {
     private val methods = {
       val tmp = new mutable.HashMap[Method, Int]()
       val ms = protocol.getMethods.sorted
-      for (i <- ms.indices) tmp += ms(i) -> i
+      for (i <- ms.indices) {
+        tmp += ms(i) -> i
+        KryoRpcEngine.logger debug s"Inovker ${ms(i)}"
+      }
       tmp
     }
 

@@ -34,6 +34,7 @@ class ResourceDetectorImpl(workerId: WorkerId,
   override def getDetectTask: TimerTask = {
     new TimerTask {
       override def run() {
+        WorkerMonitor.logger debug "TimerTask中运行。"
         workerTracker.workerHeartbeat(workerId, WorkerHealth.NORMAL,
           Resource(Configuration.getOrDefault("worker.memory", 128849011888l).toLong,
             Configuration.getOrDefault("worker.cpu", 8).toInt))

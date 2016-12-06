@@ -20,13 +20,15 @@ import scala.language.postfixOps
   * WorkersManager用于管理worker，包括作为Master-Worker协议的RPC Server，
   * 并提供所有注册至Server的Worker信息等功能。
   */
-private[master] object WorkersManager extends Service {
+private[resource] object WorkersManager extends Service {
 
   private val logger = LoggerFactory getLogger getClass
 
   private val registerWorkers = new mutable.HashMap[WorkerId, WorkerState]()
 
   private val server = RPC.getServer(Configuration getIntOrDefault("master.port", 8888))
+
+  def getRegisterWorker = registerWorkers
 
   override def init = {
     this.synchronized {
@@ -48,9 +50,6 @@ private[master] object WorkersManager extends Service {
                                            state: WorkerHealth,
                                            remainingResource: Resource): NodeAction = {
                 val worker = registerWorkers(workerId)
-                logger debug s"$WorkerId"
-                logger debug s"$state"
-                logger debug s"$remainingResource."
                 if (worker == null) NodeAction.SHUTDOWN
                 else {
                   worker updateRemainingResource remainingResource
@@ -61,7 +60,6 @@ private[master] object WorkersManager extends Service {
               /**
                 * 用于接受Worker的注册信息，在验证可以注册后，向registerWorkers添加新节点的WorkerState
                 * 并分配返回WorkerId
-                *
                 * @param launcherHost     Worker的Launcher模块RPC绑定的IP
                 * @param launcherPort     Worker的Launcher模块RPC绑定的端口
                 * @param originalResource Worker启动后的资源总量
@@ -73,7 +71,9 @@ private[master] object WorkersManager extends Service {
                 val workerState = new WorkerState(new InetSocketAddress(launcherHost, launcherPort),
                   originalResource)
                 registerWorkers += ((workerState.workerId, workerState))
-                logger info s"接收到Worker（$launcherHost）的注册信息，为其分配WorkerID=${workerState.workerId}。"
+                logger info s"接收到Worker（$launcherHost）的注册信息，" +
+                  s"为其分配WorkerID=${workerState.workerId}，" +
+                  s"初始资源量为：$originalResource。"
                 workerState.workerId
               }
             })
