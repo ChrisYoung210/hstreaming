@@ -15,14 +15,11 @@ class Task(exePath: String,
 
   private val upstreamTaskIds = new mutable.HashSet[Int]
 
-  private var taskID: Int = 0
+  private var taskID: Int = -1
 
   private[job] def addUpstreamTask(upstreamTaskIds: Int*) {
+    this.upstreamTaskIds -= -1
     upstreamTaskIds foreach (this.upstreamTaskIds += _)
-  }
-
-  private[job] def addUpstreamTask(upstreamTasks: Task*) {
-    upstreamTasks foreach (upstreamTaskIds += _.taskId)
   }
 
   def this(exePath: String) = this(exePath, null, null)
@@ -31,11 +28,24 @@ class Task(exePath: String,
 
   def taskId = taskID
 
-  def checkout = {
+  def check = {
     if (upstreamTaskIds.isEmpty) false
     else if (upstreamTaskIds.size == 1) true
     else if (upstreamTaskIds contains -1) false
   }
+
+  def upstream = upstreamTaskIds
+
+  override def equals(obj: scala.Any): Boolean = {
+    obj match {
+      case task: Task => taskId.equals(task.taskId)
+      case _ => false
+    }
+  }
+
+  override def hashCode(): Int = taskId.hashCode
+
+  override def toString: String = s"$taskId: ${upstream mkString ","}"
 
 }
 

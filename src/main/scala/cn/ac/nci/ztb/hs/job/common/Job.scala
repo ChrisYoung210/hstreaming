@@ -2,6 +2,8 @@ package cn.ac.nci.ztb.hs.job.common
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import cn.ac.nci.ztb.hs.exception.ExistDAGInStreamException
+
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -13,43 +15,79 @@ import scala.collection.mutable.ArrayBuffer
   */
 class Job {
 
-  //val jobName = s"HStreamingJob${new Date(System.currentTimeMillis)}"
-
   private val NEXT_TASK_ID = new AtomicInteger
 
   val tasks = new ArrayBuffer[Task]
 
-  val tasksID = new mutable.HashMap[Int, Task]
-
-  val isolateTask = new mutable.HashSet[Task]
+  val idToTask = new mutable.HashMap[Int, Task]
 
   /**
-    * 加入流计算节点拓扑图的起点，可以有多个节点。
-    * @param task 流拓扑结构的起始节点
+    * 向Job中注册一个Task，使用该方法注册Task时，Task将被设置为起始节点
+    * @param task
     * @return
     */
-  def register(task: Task) = {
-    if (isolateTask contains task) isolateTask -= task
-    else task setTaskID NEXT_TASK_ID.getAndIncrement
-
-    task addUpstreamTask -1
-    tasks += task
+  def register(task: Task*): Job = {
+    task foreach allotID
     this
   }
 
-  def register(task: Task, preTask: Task) = {
+  def registerWithPreTask(task: Task, preTask: Task): Job = {
+    registerWithPreTasks(task, Seq(preTask): _*)
+  }
 
-    //判断preTask是否被加入过Job孤立点（包括直接加入以及以孤立点的方式加入）。
-    if (preTask.taskId == -1) {
-      isolateTask += preTask
-    }
-    //判断task是否曾被以孤立点的形式加入过Job
-    if (isolateTask contains task) {
-      isolateTask -= task
-    }
-    //task setUpstreamTask preTask.getTaskId
-    tasks += task
+  def registerWithPreTasks(task: Task, preTasks: Task*): Job = {
+    preTasks foreach allotID
+    allotID(task)
+    task addUpstreamTask (preTasks.map(_.taskId): _*)
     this
   }
 
+  private def allotID(task: Task): Unit = {
+    if (task.taskId == -1) {
+      task setTaskID NEXT_TASK_ID.getAndIncrement
+      task addUpstreamTask -1
+      tasks += task
+      idToTask += task.taskId -> task
+    }
+  }
+
+  def check {
+
+    //判断是否存在环
+    val traversaledTask = new mutable.HashSet[Task]
+
+    def dfs(task: Task) {
+      if (task != null)
+        if (traversaledTask contains task) throw new ExistDAGInStreamException
+        else {
+          traversaledTask += task
+          task.upstream foreach(x => idToTask.get(x).foreach(dfs))
+          traversaledTask -= task
+        }
+    }
+
+    tasks foreach {
+      x => dfs(x)
+    }
+  }
+
+  override def toString: String = tasks mkString "\n"
+
+}
+
+object Job {
+  def main(args: Array[String]): Unit = {
+    val a = new Task("1")
+    val b = new Task("2")
+    val c = new Task("3")
+
+    val job = new Job
+    job.register(a)
+    job.registerWithPreTask(b, a)
+    job.registerWithPreTask(c, b)
+
+    println(job)
+
+    job.check
+  }
 }
